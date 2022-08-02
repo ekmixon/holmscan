@@ -80,9 +80,8 @@ class Controller(object):
         for k, v in dict(self.conf).items():
             if k in REQUIRED and not v:
                 error = "{0} is not configured".format(k)
-                example = CONFIG_EXAMPLES.get(k)
-                if example:
-                    error += ", " + example
+                if example := CONFIG_EXAMPLES.get(k):
+                    error += f", {example}"
                 raise HolmscanConfigException(error)
 
         # check validity of configurables
@@ -93,16 +92,13 @@ class Controller(object):
                         isinstance(VALIDATORS[k], str)
                         and not re.match(VALIDATORS[k], self.conf[k])  # noqa: W503
                     ),
-                    (
-                        isinstance(VALIDATORS[k], list)
-                        and not self.conf[k] in VALIDATORS[k]   # noqa: W503
-                    ),
+                    isinstance(VALIDATORS[k], list)
+                    and self.conf[k] not in VALIDATORS[k],
                 ]
             ):
                 error = '{0} "{1}" is malformed'.format(k, self.conf[k])
-                example = VALID_EXAMPLES.get(k)
-                if example:
-                    error += ", " + example
+                if example := VALID_EXAMPLES.get(k):
+                    error += f", {example}"
                 raise HolmscanConfigException(error)
 
         self.session = requests.session()
